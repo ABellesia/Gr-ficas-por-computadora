@@ -83,7 +83,7 @@ int main()
     // load image, create texture and generate mipmaps
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-    unsigned char* data = stbi_load("C:/Users/wpere/Desktop/Wilmer/ITAM/Docencia/Grafica/Librerias/images/Fachada.jpg", &width, &height, &nrChannels, 0);
+    unsigned char* data = stbi_load("C:/GpC/Image/Fondo.jpg", &width, &height, &nrChannels, 0);
     if (data)
     {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -116,19 +116,19 @@ int main()
         glBindTexture(GL_TEXTURE_2D, texture);
 
         // create transformations
-	
-	//TRANSFORMACIÓN       
-	glm::mat4 transform = glm::mat4(1.0f);
+
+    //TRANSFORMACIÓN       
+        glm::mat4 transform = glm::mat4(1.0f);
         transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));
         transform = glm::scale(transform, glm::vec3(0.5, 0.5, 0.5));
         transform = glm::translate(transform, glm::vec3(-0.5f, -0.5f, 0.0f));
-/*
-	        //ROTACIÓN
-        glm::mat4 trans = glm::mat4(1.0f);
-        trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
-        trans = glm::rotate(trans, (float)glfwGetTime(),
-            glm::vec3(0.0f, 0.0f, 1.0f));
-*/
+        /*
+                    //ROTACIÓN
+                glm::mat4 trans = glm::mat4(1.0f);
+                trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+                trans = glm::rotate(trans, (float)glfwGetTime(),
+                    glm::vec3(0.0f, 0.0f, 1.0f));
+        */
 
 
         // get matrix's uniform location and set matrix
