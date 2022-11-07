@@ -1,0 +1,707 @@
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+#include <shader_s.h>
+#include <stdio.h>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void processInput(GLFWwindow* window);
+
+// settings
+const unsigned int SCR_WIDTH = 1000;
+const unsigned int SCR_HEIGHT = 1000;
+
+int main()
+{
+
+    // glfw: initialize and configure
+    // ------------------------------
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+#ifdef APPLE
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+
+    // glfw window creation
+    // --------------------
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Proyecto 1", NULL, NULL);
+    if (window == NULL)
+    {
+        std::cout << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        return -1;
+    }
+    glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+    // glad: load all OpenGL function pointers
+    // ---------------------------------------
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
+        std::cout << "Failed to initialize GLAD" << std::endl;
+        return -1;
+    }
+
+    //Amarillo
+    Shader shader1("Shaders/shader1.vs", "Shaders/shaderAmarillo.fs");
+    //Gris
+    Shader shader2("Shaders/shader1.vs", "Shaders/shaderGris.fs");
+    //Naranja
+    Shader shader3("Shaders/shader1.vs", "Shaders/shaderNaranja.fs");
+    //Blanco
+    Shader shader4("Shaders/shader1.vs", "Shaders/shaderBlanco.fs");
+
+    //Shader ourShader("5.1.transform.vs", "5.1.transform.fs");
+    Shader ourShader("4.1.texture.vs", "4.1.texture.fs");
+
+
+    // set up vertex data (and buffer(s)) and configure vertex attributes
+    float cuadrado[] = {
+        1.0f, -1.0f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
+         1.0f,  1.0f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
+        -1.0f,  1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
+        -1.0f, -1.0f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left 
+    };
+
+    unsigned int indices[] = {
+        0, 1, 3, // first triangle
+        1, 2, 3  // second triangle
+    };
+
+    float Fuego[] = {
+    -0.05f,0.2487f, 0.0f,
+    -0.0881f, 0.4331f, 0.0f,
+    -0.0085f, 0.2246f, 0.0f,
+    -0.0259f, 0.1285f, 0.0f,
+    -0.0852f, 0.2113f, 0.0f,
+    -0.0881f, 0.4331f, 0.0f
+    };
+
+    ////Personita 1
+    float Pers1[] = {
+    0.0045f, 0.6473f, 0.0f,
+    0.0042f, 0.7779f, 0.0f,
+    0.0562f, 0.7034f, 0.0f,
+    0.1f, 0.7f, 0.0f,
+    0.1f, 0.6500f, 0.0f,
+    0.0045f, 0.5464f, 0.0f,
+    -0.0857f, 0.6500f, 0.0f,
+    -0.0857f, 0.7f, 0.0f,
+    -0.0338f, 0.7034f, 0.0f,
+    0.0042f, 0.7779f, 0.0f
+    };
+
+    //Personita movida
+    float PersM[] = {
+      0.0045f, 1.6473f, 0.0f,
+      0.0042f, 1.7779f, 0.0f,
+      0.0562f, 1.7034f, 0.0f,
+      0.1f, 1.7f, 0.0f,
+      0.1f, 1.6500f, 0.0f,
+      0.0045f, 1.5464f, 0.0f,
+      -0.0857f, 1.6500f, 0.0f,
+      -0.0857f, 1.7f, 0.0f,
+      -0.0338f, 1.7034f, 0.0f,
+      0.0042f, 1.7779f, 0.0f
+    };
+
+    //Persona arriba 
+    float Arriba1[] = {
+    0.0019f, 0.8948f, 0.0f,
+    0.0031f, 0.9676f, 0.0f,
+    0.1634f, 0.8742f, 0.0f,
+    0.0577f, 0.8707f, 0.0f,
+    0.0042f, 0.7779f, 0.0f,
+    -0.0621f, 0.8707f, 0.0f,
+    -0.1678f, 0.8742f, 0.0f,
+    0.0031f, 0.9676f, 0.0f
+    };
+
+    //Persona arriba movida
+    float ArribaM[] = {
+    0.0019f, 1.8948f, 0.0f,
+    0.0031f, 1.9676f, 0.0f,
+    0.1634f, 1.8742f, 0.0f,
+    0.0577f, 1.8707f, 0.0f,
+    0.0042f, 1.7779f, 0.0f,
+    -0.0621f, 1.8707f, 0.0f,
+    -0.1678f, 1.8742f, 0.0f,
+    0.0031f, 1.9676f, 0.0f
+    };
+
+    //Círculo
+    float Circ[] = {
+    0.0f, 1.0f, 0.0f, //Centro
+    0.0f, 1.15f, 0.0f,
+    0.0478f, 1.1429f, 0.0f,
+    0.0819f, 1.1279f, 0.0f,
+    0.1124f, 1.1017f, 0.0f,
+    0.1328f, 1.0745f, 0.0f,
+    0.1478f, 1.0389f, 0.0f,
+    0.15f, 1.0f, 0.0f,
+    0.1478f, 1 - 0.0389f, 0.0f,
+    0.1328f, 1 - 0.0745f, 0.0f,
+    0.1124f, 1 - 0.1017f, 0.0f,
+    0.0819f, 1 - 0.1279f, 0.0f,
+    0.0478f, 1 - 0.1429f, 0.0f,
+    0.0f, 1 - 0.15f, 0.0f,
+    -0.0478f, 1 - 0.1429f, 0.0f,
+    -0.0819f, 1 - 0.1279f, 0.0f,
+    -0.1124f, 1 - 0.1017f, 0.0f,
+    -0.1328f, 1 - 0.0745f, 0.0f,
+    -0.1478f, 1 - 0.0389f, 0.0f,
+    -0.15f, 1.0f, 0.0f,
+    -0.1478f, 1.0389f, 0.0f,
+    -0.1328f, 1.0745f, 0.0f,
+    -0.1124f, 1.1017f, 0.0f,
+    -0.0819f, 1.1279f, 0.0f,
+    -0.0478f, 1.1429f, 0.0f,
+    0.0f, 1.15f, 0.0f,
+    };
+
+    //Círculo en el centro
+    float CircCen[] = {
+    0.0f, 0.0f, 0.0f, //Centro
+    0.0f, 0.15f, 0.0f,
+    0.0478f, 0.1429f, 0.0f,
+    0.0819f, 0.1279f, 0.0f,
+    0.1124f, 0.1017f, 0.0f,
+    0.1328f, 0.0745f, 0.0f,
+    0.1478f, 0.0389f, 0.0f,
+    0.15f, 0.0f, 0.0f,
+    0.1478f, -0.0389f, 0.0f,
+    0.1328f, -0.0745f, 0.0f,
+    0.1124f, -0.1017f, 0.0f,
+    0.0819f, -0.1279f, 0.0f,
+    0.0478f, -0.1429f, 0.0f,
+    0.0f, -0.15f, 0.0f,
+    -0.0478f, -0.1429f, 0.0f,
+    -0.0819f, -0.1279f, 0.0f,
+    -0.1124f, -0.1017f, 0.0f,
+    -0.1328f, -0.0745f, 0.0f,
+    -0.1478f, -0.0389f, 0.0f,
+    -0.15f, 0.0f, 0.0f,
+    -0.1478f, 0.0389f, 0.0f,
+    -0.1328f, 0.0745f, 0.0f,
+    -0.1124f, 0.1017f, 0.0f,
+    -0.0819f, 0.1279f, 0.0f,
+    -0.0478f, 0.1429f, 0.0f,
+    0.0f, 0.15f, 0.0f,
+    };
+
+
+    unsigned int VBOs[100], VAOs[100], EBO[100];
+    glGenVertexArrays(100, VAOs); // we can also generate multiple VAOs or buffers at the same time
+    glGenBuffers(100, VBOs);
+    glGenBuffers(100, EBO);
+
+    //Fuego
+    glBindVertexArray(VAOs[0]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Fuego), Fuego, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glEnableVertexAttribArray(0);
+
+    //Personita 1
+    glBindVertexArray(VAOs[1]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Pers1), Pers1, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glEnableVertexAttribArray(0);
+
+    //persona arriba
+    glBindVertexArray(VAOs[2]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[2]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Arriba1), Arriba1, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glEnableVertexAttribArray(0);
+
+
+    //Circ 1
+    glBindVertexArray(VAOs[3]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[3]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Circ), Circ, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glEnableVertexAttribArray(0);
+
+    //Persona Movida
+    glBindVertexArray(VAOs[4]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[4]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(PersM), PersM, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glEnableVertexAttribArray(0);
+
+
+    //ArribaM
+    glBindVertexArray(VAOs[5]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[5]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(ArribaM), ArribaM, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glEnableVertexAttribArray(0);
+
+    //ArribaM
+    glBindVertexArray(VAOs[6]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[6]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(CircCen), CircCen, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glEnableVertexAttribArray(0);
+
+    //Textura
+    glBindVertexArray(VAOs[7]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[7]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cuadrado), cuadrado, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO[0]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    // color attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+    // texture coord attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+
+    // load and create a texture 
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
+    // set the texture wrapping parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // set texture filtering parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // load image, create texture and generate mipmaps
+    int width, height, nrChannels;
+    unsigned char* data = stbi_load("C:/GpC/Image/tarea.jpg", &width, &height, &nrChannels, 0);
+    if (data)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        std::cout << "Failed to load texture" << std::endl;
+    }
+    stbi_image_free(data);
+    // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
+    // -------------------------------------------------------------------------------------------
+    /*ourShader.use();
+    ourShader.setInt("texture", 0);*/
+
+    // render loop
+
+
+    float inc = 0.0;
+    float pi = 3.14;
+
+
+    while (!glfwWindowShouldClose(window))
+    {
+        // input
+        // -----
+        processInput(window);
+
+        // render
+        // ------
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        glm::mat4 transform;
+        unsigned int transformLoc;
+
+
+        if (inc >= 0.0 and inc <= 0.9) //Cae el císculo/elipse
+        {
+            shader3.use();
+            transform = glm::mat4(1.0f); // reset it to identity matrix
+            inc = inc + 0.0007;
+            transform = glm::translate(transform, glm::vec3(0.0f, -1.0f * inc, 0.0f));
+            transformLoc = glGetUniformLocation(shader3.ID, "transform");
+            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+            glBindVertexArray(VAOs[3]);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+
+        }
+        else if (inc > 0.9 and inc <= 1.5) { //explota y salen los fuegos que se expanden
+            shader3.use();
+            transform = glm::mat4(1.0f); // reset it to identity matrix
+            inc = inc + 0.0001;
+            transform = glm::scale(transform, glm::vec3(0.6 * inc, 0.6 * inc, 0.6 * inc));
+            transformLoc = glGetUniformLocation(shader3.ID, "transform");
+            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+            glBindVertexArray(VAOs[0]);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+
+            for (int i = 1; i <= 15; i++) {
+                transform = glm::mat4(1.0f); // reset it to identity matrix
+                transform = glm::rotate(transform, glm::radians(i * 22.5f), glm::vec3(0.0, 0.0, 1.0));
+                transform = glm::scale(transform, glm::vec3(0.6 * inc, 0.6 * inc, 0.6 * inc));
+                glUniformMatrix4fv(transformLoc, 1, GL_FALSE, &transform[0][0]);
+                glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+            }
+
+
+        }
+        else if (inc > 1.5 and inc <= 2.8) { //sale la primera nave de arriba y llega a su lugar
+            shader3.use();
+            transform = glm::mat4(1.0f); // reset it to identity matrix
+            transform = glm::scale(transform, glm::vec3(1.0, 1.0, 1.0));
+            transformLoc = glGetUniformLocation(shader3.ID, "transform");
+            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+            glBindVertexArray(VAOs[0]);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+
+            for (int i = 1; i <= 15; i++) {
+                transform = glm::mat4(1.0f); // reset it to identity matrix
+                transform = glm::rotate(transform, glm::radians(i * 22.5f), glm::vec3(0.0, 0.0, 1.0));
+                transform = glm::scale(transform, glm::vec3(1.0, 1.0, 1.0));
+                glUniformMatrix4fv(transformLoc, 1, GL_FALSE, &transform[0][0]);
+                glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+            }
+
+            shader1.use();
+            transform = glm::mat4(1.0f); // reset it to identity matrix
+            inc = inc + 0.0003;
+            transform = glm::translate(transform, glm::vec3(0.0f, -0.3f * inc, 0.0f));
+            transformLoc = glGetUniformLocation(shader1.ID, "transform");
+            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+            glBindVertexArray(VAOs[4]);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+        }
+        else if (inc > 2.8 and inc <= 9.1) { //rota alrededor del fuego
+            shader3.use();
+            transform = glm::mat4(1.0f); // reset it to identity matrix
+            transform = glm::scale(transform, glm::vec3(1.0, 1.0, 1.0));
+            transformLoc = glGetUniformLocation(shader3.ID, "transform");
+            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+            glBindVertexArray(VAOs[0]);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+
+            for (int i = 1; i <= 15; i++) {
+                transform = glm::mat4(1.0f); // reset it to identity matrix
+                transform = glm::rotate(transform, glm::radians(i * 22.5f), glm::vec3(0.0, 0.0, 1.0));
+                transform = glm::scale(transform, glm::vec3(1.0, 1.0, 1.0));
+                glUniformMatrix4fv(transformLoc, 1, GL_FALSE, &transform[0][0]);
+                glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+            }
+
+            shader1.use();
+            transform = glm::mat4(1.0f); // reset it to identity matrix
+            inc = inc + 0.0003;
+            transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, 0.0f));
+            transform = glm::rotate(transform, inc - 2.8f, glm::vec3(0.0, 0.0, 1.0));
+            transformLoc = glGetUniformLocation(shader1.ID, "transform");
+            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+            glBindVertexArray(VAOs[1]);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+        }
+        else if (inc > 9.1 and inc <= 11) { //la nave se va por sus amigas naves
+            shader3.use();
+            transform = glm::mat4(1.0f); // reset it to identity matrix
+            transform = glm::scale(transform, glm::vec3(1.0, 1.0, 1.0));
+            transformLoc = glGetUniformLocation(shader3.ID, "transform");
+            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+            glBindVertexArray(VAOs[0]);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+
+            for (int i = 1; i <= 15; i++) {
+                transform = glm::mat4(1.0f); // reset it to identity matrix
+                transform = glm::rotate(transform, glm::radians(i * 22.5f), glm::vec3(0.0, 0.0, 1.0));
+                transform = glm::scale(transform, glm::vec3(1.0, 1.0, 1.0));
+                glUniformMatrix4fv(transformLoc, 1, GL_FALSE, &transform[0][0]);
+                glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+            }
+
+            shader1.use();
+            transform = glm::mat4(1.0f); // reset it to identity matrix
+            inc = inc + 0.0002;
+            transform = glm::translate(transform, glm::vec3(0.0f, 0.3f * (inc - 9.1), 0.0f));
+            transformLoc = glGetUniformLocation(shader1.ID, "transform");
+            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+            glBindVertexArray(VAOs[1]);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+
+        }
+        else if (inc > 11 and inc <= 12.3) { //llegan las demás naves a su lugar
+            shader3.use();
+            transform = glm::mat4(1.0f); // reset it to identity matrix
+            transform = glm::scale(transform, glm::vec3(1.0, 1.0, 1.0));
+            transformLoc = glGetUniformLocation(shader3.ID, "transform");
+            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+            glBindVertexArray(VAOs[0]);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+
+            for (int i = 1; i <= 15; i++) {
+                transform = glm::mat4(1.0f); // reset it to identity matrix
+                transform = glm::rotate(transform, glm::radians(i * 22.5f), glm::vec3(0.0, 0.0, 1.0));
+                transform = glm::scale(transform, glm::vec3(1.0, 1.0, 1.0));
+                glUniformMatrix4fv(transformLoc, 1, GL_FALSE, &transform[0][0]);
+                glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+            }
+
+            shader1.use();
+            transform = glm::mat4(1.0f); // reset it to identity matrix
+            inc = inc + 0.0002;
+            transform = glm::translate(transform, glm::vec3(0.0f, -0.3f * (inc - 9.1), 0.0f));
+            transformLoc = glGetUniformLocation(shader1.ID, "transform");
+            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+            glBindVertexArray(VAOs[4]);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+
+            for (int i = 1; i <= 15; i++) {
+                transform = glm::mat4(1.0f);
+                transform = glm::rotate(transform, glm::radians(i * 22.5f), glm::vec3(0.0, 0.0, 1.0));
+                transform = glm::translate(transform, glm::vec3(0.0f, -0.3f * (inc - 9.1), 0.0f));
+                transformLoc = glGetUniformLocation(shader1.ID, "transform");
+                glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+                glBindVertexArray(VAOs[4]);
+                glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+            }
+        }
+        else if (inc > 12.3 and inc <= 15.6) { //llegan las naves de arriba
+            //Fuegos estáticos
+            shader3.use();
+            transform = glm::mat4(1.0f); // reset it to identity matrix
+            transform = glm::scale(transform, glm::vec3(1.0, 1.0, 1.0));
+            transformLoc = glGetUniformLocation(shader3.ID, "transform");
+            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+            glBindVertexArray(VAOs[0]);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+
+            for (int i = 1; i <= 15; i++) {
+                transform = glm::mat4(1.0f); // reset it to identity matrix
+                transform = glm::rotate(transform, glm::radians(i * 22.5f), glm::vec3(0.0, 0.0, 1.0));
+                transform = glm::scale(transform, glm::vec3(1.0, 1.0, 1.0));
+                glUniformMatrix4fv(transformLoc, 1, GL_FALSE, &transform[0][0]);
+                glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+            }
+            //Personitas estáticas
+            shader1.use();
+            transform = glm::mat4(1.0f); // reset it to identity matrix
+            inc = inc + 0.0002;
+            transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, 0.0f));
+            transformLoc = glGetUniformLocation(shader1.ID, "transform");
+            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+            glBindVertexArray(VAOs[1]);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+
+            for (int i = 1; i <= 15; i++) {
+                transform = glm::mat4(1.0f);
+                transform = glm::rotate(transform, glm::radians(i * 22.5f), glm::vec3(0.0, 0.0, 1.0));
+                transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, 0.0f));
+                transformLoc = glGetUniformLocation(shader1.ID, "transform");
+                glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+                glBindVertexArray(VAOs[1]);
+                glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+            }
+            //Personitas de arriba
+            shader1.use();
+            transform = glm::mat4(1.0f); // reset it to identity matrix
+            inc = inc + 0.0002;
+            transform = glm::translate(transform, glm::vec3(0.0f, -0.3f * (inc - 12.3), 0.0f));
+            transformLoc = glGetUniformLocation(shader1.ID, "transform");
+            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+            glBindVertexArray(VAOs[5]);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+
+            for (int i = 1; i <= 15; i++) {
+                transform = glm::mat4(1.0f);
+                transform = glm::rotate(transform, glm::radians(i * 22.5f), glm::vec3(0.0, 0.0, 1.0));
+                transform = glm::translate(transform, glm::vec3(0.0f, -0.3f * (inc - 12.3), 0.0f));
+                transformLoc = glGetUniformLocation(shader1.ID, "transform");
+                glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+                glBindVertexArray(VAOs[5]);
+                glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+            }
+
+        }
+        else if (inc > 15.6 and inc <= 66) { //Cada fila de personitas gira en sentidos contrarios
+
+            if (inc < 17) {
+                //Fuegos estáticos
+                shader3.use();
+                transform = glm::mat4(1.0f); // reset it to identity matrix
+                transform = glm::scale(transform, glm::vec3(1.0, 1.0, 1.0));
+                transformLoc = glGetUniformLocation(shader3.ID, "transform");
+                glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+                glBindVertexArray(VAOs[0]);
+                glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+
+                for (int i = 1; i <= 15; i++) {
+                    transform = glm::mat4(1.0f); // reset it to identity matrix
+                    transform = glm::rotate(transform, glm::radians(i * 22.5f), glm::vec3(0.0, 0.0, 1.0));
+                    transform = glm::scale(transform, glm::vec3(1.0, 1.0, 1.0));
+                    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, &transform[0][0]);
+                    glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+                }
+            }
+
+            if (inc >= 17) {
+                //Fuegos comienzan a girar y cambia el fondo
+                glClearColor(0.5f, 0.1f, 0.9f, 0.0f);
+                glClear(GL_COLOR_BUFFER_BIT);
+
+                shader3.use();
+                transform = glm::mat4(1.0f); // reset it to identity matrix
+                transform = glm::scale(transform, glm::vec3(1.0, 1.0, 1.0));
+                transform = glm::rotate(transform, -inc + 17.0f, glm::vec3(0.0, 0.0, 1.0));
+                transformLoc = glGetUniformLocation(shader3.ID, "transform");
+                glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+                glBindVertexArray(VAOs[0]);
+                glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+
+                for (int i = 1; i <= 15; i++) {
+                    transform = glm::mat4(1.0f); // reset it to identity matrix
+                    transform = glm::rotate(transform, glm::radians(i * 22.5f), glm::vec3(0.0, 0.0, 1.0));
+                    transform = glm::scale(transform, glm::vec3(1.0, 1.0, 1.0));
+                    transform = glm::rotate(transform, -inc + 17.0f, glm::vec3(0.0, 0.0, 1.0));
+                    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, &transform[0][0]);
+                    glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+                }
+            }
+
+            //Personitas giran
+            shader2.use();
+            transform = glm::mat4(1.0f); // reset it to identity matrix
+            if (inc < 18.5)
+                inc = inc + 0.0002;
+            transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, 0.0f));
+            transform = glm::rotate(transform, inc - 15.6f, glm::vec3(0.0, 0.0, 1.0));
+            transformLoc = glGetUniformLocation(shader2.ID, "transform");
+            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+            glBindVertexArray(VAOs[1]);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+
+            for (int i = 1; i <= 15; i++) {
+                transform = glm::mat4(1.0f);
+                transform = glm::rotate(transform, glm::radians(i * 22.5f), glm::vec3(0.0, 0.0, 1.0));
+                //transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, 0.0f));
+                transform = glm::rotate(transform, inc - 15.6f, glm::vec3(0.0, 0.0, 1.0));
+                transformLoc = glGetUniformLocation(shader2.ID, "transform");
+                glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+                glBindVertexArray(VAOs[1]);
+                glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+            }
+
+            if (inc < 16) {
+                shader1.use();
+                transform = glm::mat4(1.0f); // reset it to identity matrix
+                inc = inc + 0.0002;
+                transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, 0.0f));
+                transformLoc = glGetUniformLocation(shader1.ID, "transform");
+                glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+                glBindVertexArray(VAOs[2]);
+                glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+
+                for (int i = 1; i <= 15; i++) {
+                    transform = glm::mat4(1.0f);
+                    transform = glm::rotate(transform, glm::radians(i * 22.5f), glm::vec3(0.0, 0.0, 1.0));
+                    transformLoc = glGetUniformLocation(shader1.ID, "transform");
+                    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+                    glBindVertexArray(VAOs[2]);
+                    glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+                }
+
+            }
+            else {
+                //Personitas de arriba
+                shader2.use();
+                transform = glm::mat4(1.0f); // reset it to identity matrix
+                if (inc < 18.5)
+                    inc = inc + 0.0002;
+                transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, 0.0f));
+                transform = glm::rotate(transform, -inc + 15.6f, glm::vec3(0.0, 0.0, 1.0));
+                transformLoc = glGetUniformLocation(shader2.ID, "transform");
+                glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+                glBindVertexArray(VAOs[2]);
+                glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+
+                for (int i = 1; i <= 15; i++) {
+                    transform = glm::mat4(1.0f);
+                    transform = glm::rotate(transform, glm::radians(i * 22.5f), glm::vec3(0.0, 0.0, 1.0));
+                    //transform = glm::translate(transform, glm::vec3(0.0f, -0.3f * (inc - 12.3), 0.0f));
+                    transform = glm::rotate(transform, -inc + 15.6f, glm::vec3(0.0, 0.0, 1.0));
+                    transformLoc = glGetUniformLocation(shader2.ID, "transform");
+                    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+                    glBindVertexArray(VAOs[2]);
+                    glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+                }
+            }
+
+            if (inc >= 18.5) {
+                shader4.use();
+                transform = glm::mat4(1.0f);
+                inc = inc + 0.005;
+                transform = glm::scale(transform, glm::vec3(0.2 * (inc - 18.5), 0.2 * (inc - 18.5), 0.2 * (inc - 18.5)));
+                transformLoc = glGetUniformLocation(shader4.ID, "transform");
+                glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+                glBindVertexArray(VAOs[6]);
+                glDrawArrays(GL_TRIANGLE_FAN, 0, 30);
+
+
+            }
+
+        }
+        else if (inc > 66 and inc <= 75.0) {
+            // render
+            glClearColor(0.2f, 0.0f, 0.8f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            // bind Texture
+            glBindTexture(GL_TEXTURE_2D, texture);
+
+            // render container
+            ourShader.use();
+            glBindVertexArray(VAOs[7]);
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        }
+
+
+        // -------------------------------------------------------------------------------
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+
+    // optional: de-allocate all resources once they've outlived their purpose:
+    // ------------------------------------------------------------------------
+    glDeleteVertexArrays(1, VAOs);
+    glDeleteBuffers(1, VBOs);
+    glDeleteBuffers(1, EBO);
+
+    // glfw: terminate, clearing all previously allocated GLFW resources.
+    // ------------------------------------------------------------------
+    glfwTerminate();
+    return 0;
+}
+
+// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
+// ---------------------------------------------------------------------------------------------------------
+void processInput(GLFWwindow* window)
+{
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+}
+
+// glfw: whenever the window size changed (by OS or user resize) this callback function executes
+// ---------------------------------------------------------------------------------------------
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    // make sure the viewport matches the new window dimensions; note that width and 
+    // height will be significantly larger than specified on retina displays.
+    glViewport(0, 0, width, height);
+}
